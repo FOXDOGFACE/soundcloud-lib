@@ -175,6 +175,16 @@ class Track:
             self.title = "-".join(parts[1:]).strip()
         else:
             self.artist = username
+
+    def cleen_bad_symbols(self):
+        intab = ''
+        outtab = ''
+        deltab = '\/:*?"<>|'
+        trantab = str.maketrans(intab, outtab, deltab)
+        title = self.title
+        artist = self.artist
+        self.title = title.translate(trantab)
+        self.artist = artist.translate(trantab)
 #
 #   Uses urllib
 #
@@ -194,16 +204,21 @@ class Track:
                 ).read()
 
             self.write_track_id3(fp, album_artwork)
-        except (TypeError, ValueError) as e:
-            util.eprint('File object passed to "write_mp3_to" must be opened in read/write binary ("wb+") mode')
-            util.eprint(e)
-            raise e
+        # except (TypeError, ValueError, TimeoutError, ) as e:
+        #     util.eprint('File object passed to "write_mp3_to" must be opened in read/write binary ("wb+") mode')
+        #     util.eprint(e)
+        #     raise e
+        except:
+            return 'error'
 
     def get_prog_url(self):
-        for transcode in self.media['transcodings']:
-            if transcode['format']['protocol'] == 'progressive':
-                return transcode['url'] + "?client_id=" + self.client.client_id
-        raise UnsupportedFormatError("As of soundcloud-lib 0.5.0, tracks that are not marked as 'Downloadable' cannot be downloaded because this library does not yet assemble HLS streams.")
+        try:
+            for transcode in self.media['transcodings']:
+                if transcode['format']['protocol'] == 'progressive':
+                    return transcode['url'] + "?client_id=" + self.client.client_id
+        # raise UnsupportedFormatError("As of soundcloud-lib 0.5.0, tracks that are not marked as 'Downloadable' cannot be downloaded because this library does not yet assemble HLS streams.")
+        except:
+            pass
 #
 #   Uses urllib
 #
@@ -298,6 +313,7 @@ class Playlist:
     ]
     RESOLVE_THRESHOLD = 100
 
+
     def __init__(self, *, obj=None, client=None):
         assert obj
         assert "id" in obj
@@ -313,7 +329,11 @@ class Playlist:
         incomplete_track_ids = []  # tracks that do not have metadata
 
         while self.tracks and 'title' in self.tracks[0]:  # remove completed track objects
-            track_objects.append(Track(obj=self.tracks.pop(0), client=self.client))
+            track = Track(obj=self.tracks.pop(0), client=self.client)
+            track.cleen_bad_symbols()
+            # track_objects.append(Track(obj=self.tracks.pop(0), client=self.client))
+            track_objects.append(track)
+
 
         while self.tracks:  # while built tracks are less than all tracks
             incomplete_track_ids.append(self.tracks.pop(0)['id'])
@@ -322,6 +342,7 @@ class Playlist:
                 track_objects.extend([Track(obj=t, client=self.client) for t in new_tracks])
                 incomplete_track_ids.clear()
         self.tracks = track_objects
+
 
     def __len__(self):
         return int(self.track_count)
