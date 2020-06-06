@@ -209,6 +209,9 @@ class Track:
         #     util.eprint(e)
         #     raise e
         except:
+            # return 'error'
+            filename = self.artist + '  ' + self.title
+            print("tracks that are not marked as 'Downloadable' cannot be downloaded because this library does not yet assemble HLS streams, track named", filename, "wasnt downloaded")
             return 'error'
 
     def get_prog_url(self):
