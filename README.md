@@ -44,17 +44,21 @@ with open(filename, 'wb+') as fp:
 ## Fetch a playlist
 
 ```python
-from sclib import SoundcloudAPI, Track, Playlist
+from sclib import SoundcloudAPI, Track, Playlist, os
 
-api = SoundcloudAPI()
+api = SoundcloudAPI() # never pass a Soundcloud client ID that did not come from this library
 playlist = api.resolve('https://soundcloud.com/playlist_url')
 
 assert type(playlist) is Playlist
-
 for track in playlist.tracks:
-    filename = f'./{track.artist} - {track.title}.mp3'
+    filename = rf'./{track.artist} - {track.title}.mp3'
     with open(filename, 'wb+') as fp:
         track.write_mp3_to(fp)
+
+bad_files = Track.bad_files     # deleting mp3 files
+for i in bad_files:             # that couldn't be 
+    os.remove(i)                # downloaded
+
 
 ```
 
@@ -92,8 +96,8 @@ for track in playlist.tracks:
 ```
 
 ## Write Album Name or Track Number
-```python
-from sclib import SoundcloudAPI, Track, Playlist
+```python   
+from sclib import SoundcloudAPI, Track, Playlist, os
 
 playlist = SoundcloudAPI().resolve("https://soundcloud.com/user/sets/playlist_name")
 
@@ -102,6 +106,10 @@ for track_number, track in enumerate(playlist):
     track.album = playlist.title
     with open(f"{track.artist} - {track.title}.mp3", "wb+") as file:
         track.write_mp3_to(file)
+
+bad_files = Track.bad_files     # deleting mp3 files
+for i in bad_files:             # that couldn't be 
+    os.remove(i)                # downloaded
 ```
 
 
