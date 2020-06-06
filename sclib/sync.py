@@ -5,6 +5,7 @@ import random
 import io
 import mutagen
 from concurrent import futures
+import os
 
 
 def get_url(url):
@@ -154,6 +155,7 @@ class Track:
         "ready"
     ]
     STREAM_URL = "https://api.soundcloud.com/i1/tracks/{track_id}/streams?client_id={client_id}"
+    bad_files = []
     def __init__(self, *, obj=None, client=None):
         if not obj:
             raise ValueError("[Track]: obj must not be None")
@@ -204,22 +206,16 @@ class Track:
                 ).read()
 
             self.write_track_id3(fp, album_artwork)
-        # except (TypeError, ValueError, TimeoutError, ) as e:
-        #     util.eprint('File object passed to "write_mp3_to" must be opened in read/write binary ("wb+") mode')
-        #     util.eprint(e)
-        #     raise e
         except:
-            # return 'error'
-            filename = self.artist + '  ' + self.title
-            print("tracks that are not marked as 'Downloadable' cannot be downloaded because this library does not yet assemble HLS streams, track named", filename, "wasnt downloaded")
-            return 'error'
+            filename = rf'./{self.artist} - {self.title}'
+            print("tracks that are not marked as 'Downloadable' cannot be downloaded because this library does not yet assemble HLS streams, track named " + filename[2:] + " wasnt downloaded")
+            self.bad_files.append(filename+'.mp3')
 
     def get_prog_url(self):
         try:
             for transcode in self.media['transcodings']:
                 if transcode['format']['protocol'] == 'progressive':
                     return transcode['url'] + "?client_id=" + self.client.client_id
-        # raise UnsupportedFormatError("As of soundcloud-lib 0.5.0, tracks that are not marked as 'Downloadable' cannot be downloaded because this library does not yet assemble HLS streams.")
         except:
             pass
 #
